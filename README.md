@@ -110,12 +110,6 @@ Swagger UI is available at `http://localhost:8000/docs`.
 
 ---
 
-## License
-
-MIT License – see the [LICENSE](LICENSE) file for details.
-
----
-
 ## Acknowledgements
 
 This project uses the **CIFAR-10 dataset**, collected by Alex Krizhevsky, Vinod Nair, and Geoffrey Hinton.
