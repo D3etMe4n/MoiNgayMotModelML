@@ -101,7 +101,7 @@ moingaymotmodelml/
 docker build -t moingaymotmodelml .
 
 # Run the container
-docker run -p 8000:8000 moingaymotmodelml
+docker run -p 8000:8000 -v $(pwd)/data:/app/data moingaymotmodelml
 ```
 
 Now you can access the API at `http://localhost:8000`.
