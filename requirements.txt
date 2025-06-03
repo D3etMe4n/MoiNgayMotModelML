@@ -5,3 +5,4 @@ torchvision>=0.11.0,<0.13.0
 Pillow>=8.4.0,<9.0.0
 numpy>=1.21.0,<1.24.0
 python-multipart
+scikit-learn>=1.2.2
