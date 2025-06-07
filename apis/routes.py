@@ -26,8 +26,8 @@ async def initialize_models_and_data():
 
 @router.post("/train/{model_name}")
 async def train_model(model_name: str):
-    if model_name not in ["softmax", "svm"]:
-        raise HTTPException(status_code=400, detail="Model name must be 'softmax' or 'svm'")
+    if model_name not in ["softmax", "svm", "xgboost"]:
+        raise HTTPException(status_code=400, detail="Model name must be 'softmax' or 'svm' or 'xgboost'")
 
     if model_name == "softmax":
         if app_state.is_softmax_trained:
@@ -44,6 +44,12 @@ async def train_model(model_name: str):
         app_state.svm_trainer.train()
         app_state.is_svm_trained = True
         return {"message": "SVM model trained successfully"}
+    elif model_name == "xgboost":
+        if app_state.is_xgboost_trained:
+            return {"message": "XGBoost model already trained"}
+        app_state.xgboost_trainer.train()
+        app_state.is_xgboost_trained = True
+        return {"message": "XGBoost model trained successfully"}
 
 @router.get("/prediction/softmax/{image_id}")
 async def predict_softmax(image_id: int):
@@ -108,6 +114,29 @@ async def predict_svm(image_id: int):
         "image_b64": tensor_to_base64(image_tensor)
     }
 
+@router.get("/prediction/xgboost/{image_id}")
+async def predict_xgboost(image_id: int):
+    if not app_state.is_xgboost_trained:
+        await train_model("xgboost")  # Auto-train nếu chưa train
+
+    if image_id < 0 or image_id >= len(app_state.test_dataset):
+        raise HTTPException(status_code=404, detail=f"Image ID must be between 0 and {len(app_state.test_dataset)-1}")
+
+    image_tensor, true_label = app_state.test_dataset[image_id]
+    predicted_class = app_state.xgboost_model.predict_tensor(image_tensor)
+
+    true_idx = int(true_label) if isinstance(true_label, int) else true_label.item()
+
+    return {
+        "model": "xgboost",
+        "image_id": image_id,
+        "predicted_class": predicted_class.item(),
+        "predicted_class_name": class_names[true_idx],
+        "true_class": true_idx,
+        "true_class_name": class_names[true_idx],
+        "image_b64": tensor_to_base64(image_tensor)
+    }
+
 @router.get("/training/results")
 async def get_training_results():
     svm_acc = app_state.svm_trainer.evaluate() if app_state.is_svm_trained else None
@@ -127,3 +156,60 @@ async def get_training_results():
             "validation_accuracies_softmax": app_state.softmax_trainer.validation_accuracies if app_state.is_softmax_trained else []
         }
     }
+
+@router.get("/results/{model_name}")
+async def get_training_results(model_name: str):
+    if model_name not in ["softmax", "svm", "xgboost"]:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "Model name must be 'softmax', 'svm', or 'xgboost'"}
+        )
+
+    if model_name == "softmax":
+        if not app_state.is_softmax_trained:
+            return JSONResponse(
+                status_code=400,
+                content={"error": "Softmax model has not been trained yet"}
+            )
+        trainer = app_state.softmax_trainer
+        return JSONResponse(content={
+            "model": "softmax",
+            "total_epochs": len(trainer.training_losses),
+            "final_train_accuracy": trainer.training_accuracies[-1],
+            "final_validation_accuracy": trainer.validation_accuracies[-1],
+            "history": {
+                "losses": trainer.training_losses,
+                "train_accuracies": trainer.training_accuracies,
+                "validation_accuracies": trainer.validation_accuracies
+            }
+        })
+
+    elif model_name == "svm":
+        if not app_state.is_svm_trained:
+            return JSONResponse(
+                status_code=400,
+                content={"error": "SVM model has not been trained yet"}
+            )
+        acc = app_state.svm_trainer.evaluate()
+        return JSONResponse(content={
+            "model": "svm",
+            "total_epochs": 1,
+            "final_train_accuracy": None,
+            "final_validation_accuracy": acc,
+            "history": {}
+        })
+
+    elif model_name == "xgboost":
+        if not app_state.is_xgboost_trained:
+            return JSONResponse(
+                status_code=400,
+                content={"error": "XGBoost model has not been trained yet"}
+            )
+        acc = app_state.xgboost_trainer.evaluate()
+        return JSONResponse(content={
+            "model": "xgboost",
+            "total_epochs": 1,
+            "final_train_accuracy": None,
+            "final_validation_accuracy": acc,
+            "history": {}
+        })

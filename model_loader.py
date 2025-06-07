@@ -5,8 +5,10 @@ from config.settings import INPUT_DIM, NUM_CLASSES, EPOCHS, BATCH_SIZE
 from data_loader import get_data_loaders
 from models.softmax import SoftmaxRegression
 from models.svm import SVMModelWrapper
+from models.xgboost import XGBoostWrapper
 from trainers.softmax_trainer import ModelTrainer as SoftmaxTrainer
 from trainers.svm_trainer import SVMTrainer
+from trainers.xgboost_trainer import XGBoostTrainer
 from app_state import app_state
 
 def load_models_and_data():
@@ -48,4 +50,10 @@ def load_models_and_data():
         train_loader,
         test_loader,
         INPUT_DIM
+    )
+
+    # Khởi tạo mô hình XGBoost
+    app_state.xgboost_model = XGBoostWrapper(INPUT_DIM, NUM_CLASSES)
+    app_state.xgboost_trainer = XGBoostTrainer(
+        app_state.xgboost_model, train_loader, test_loader, INPUT_DIM
     )

@@ -8,6 +8,9 @@ class AppState:
         self.svm_model = None
         self.softmax_trainer = None
         self.svm_trainer = None
+        self.is_xgboost_trained = False
+        self.xgboost_model = None
+        self.xgboost_trainer = None
         self.test_dataset = None
         self.device = None
         self.INPUT_DIM = None
