@@ -72,18 +72,35 @@ Each model is accessible via its own endpoint under `/prediction/{model_name}`.
 
 ```
 moingaymotmodelml/
-├── app/
-│   ├── main.py          # FastAPI application
-│   ├── preprocess.py    # Feature engineering pipeline
-│   └── models/          # Model implementations
-│       ├── logistic.py
-│       ├── svm.py
-│       ├── random_forest.py
-│       ├── lstm.py
-│       └── cnn.py
-├── Dockerfile           # Docker configuration
-├── requirements.txt     # Python dependencies
-└── README.md            # You are here!
+│
+├── main.py                  # Entry point - chạy FastAPI app
+├── requirements.txt         # Danh sách thư viện cần thiết
+│
+├── config/                  # Cấu hình chung (hằng số)
+│   └── settings.py          # INPUT_DIM, NUM_CLASSES, BATCH_SIZE,...
+│
+├── models/                  # Mô hình học máy
+│   ├── softmax.py           # SoftmaxRegression class
+│   ├── svm.py               # SVMModelWrapper class
+│   └── xgboost.py           # XGBoostWrapper class
+│
+├── data/                    # Xử lý dữ liệu
+│   └── data_loader.py       # Hàm tải CIFAR-10 dataset
+│
+├── trainers/                # Huấn luyện từng mô hình
+│   ├── softmax_trainer.py   # ModelTrainer cho Softmax
+│   ├── svm_trainer.py       # SVMTrainer cho SVM
+│   └── xgboost_trainer.py   # XGBoostTrainer cho XGBoost
+│
+├── apis/                    # API routes
+│   └── routes.py            # Các route chính
+│
+├── utils/                   # Hàm tiện ích
+│   └── helpers.py           # tensor_to_base64, class_names,...
+│
+├── app_state.py             # Quản lý trạng thái ứng dụng
+├── logging_setup.py         # Thiết lập logging toàn ứng dụng
+└── Dockerfile               # Docker build file (tùy chọn)
 ```
 
 ---
